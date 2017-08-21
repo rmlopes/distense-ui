@@ -31,10 +31,10 @@ contract VotingDapp {
   }
 
   mapping (bytes32 => Poll) public polls;
-  enum PollType { Anyone, Approved, Secret };
+  enum PollType { Anyone, Approved, Secret }
 
-  function VotingDapp() /*payable*/ {
-
+  //TODO payable
+  function VotingDapp() {
   }
 
   function createPoll(
@@ -42,15 +42,15 @@ contract VotingDapp {
     PollType _pollType,
     uint256 _endDate,
     string[] _options,
-    address[] _oters,
+    address[] _voters,
     bytes _secret
   ) external returns (bool) {
-    require(_creator != address(0));
-    _createdAt = block.timestamp;
+    require(_createdBy != address(0));
+    uint256 _createdAt = block.timestamp;
     require(_endDate <= _createdAt + 1 years);
     bytes32 _pollID = keccak256(_createdBy, _endDate, _createdAt, _pollType);	// uniqueID that will be bytes32
-    poll = Poll(
-      _pollID
+    Poll storage poll = Poll(
+      _pollID,
       _createdBy,
       _options,
       _createdAt,
@@ -61,8 +61,8 @@ contract VotingDapp {
     // Loop through provided voters and mark them boolean in approvedVoters mapping
     // TODO determine max approvedVoters length that will be under block gas limit + whatever other gas is consumed by this function
     for (uint256 i = 0; i < _voters.length; i++){
-      votersAddress = _voters[i];
-      voter = Voter(votersAddress, false, true);
+      address votersAddress = _voters[i];
+      Voter storage voter = Voter(votersAddress, false, true);
       polls[_pollID].voters[votersAddress] = voter;
     }
     return true;
@@ -72,12 +72,12 @@ contract VotingDapp {
     polls[_pollID].approvedVoters[_address] = true;
   }
 
-  function resolvePoll() external return () {
-
+  //TODO
+  function resolvePoll() {
   }
 
-  function vote(bytes32 _pollID, _text) isApproved hasntVoted external returns (bool) {
-    poll = polls[_pollID];
+  function vote(bytes32 _pollID,string _text) isApproved hasntVoted external returns (bool) {
+    Poll storage poll = polls[_pollID];
     require(block.timestamp <= poll.endDate);
     poll.voters[msg.sender].hasVoted = true;
     uint256 index = poll.options[_text];
@@ -85,20 +85,21 @@ contract VotingDapp {
     return true;
   }
 
-  modifier pollCreationFunded() {
-  }
+  //TODO
+  /*modifier pollCreationFunded(){  
+  }*/
 
-  modifier onlyCreator(){
-    require(polls[pollID].createdBy == msg.sender);
+  modifier onlyCreator(address _pollID){
+    require(polls[_pollID].createdBy == msg.sender);
     _;
   }
 
-  modifier isApproved() {
+  modifier isApproved(PollType _pollType, address _pollID) {
     require (_pollType == PollType.Anyone || polls[_pollID].voters[msg.sender].isApproved);
     _;
   }
 
-  modifier hasntVoted() {
+  modifier hasntVoted(address _pollID) {
     require (!polls[_pollID].voters[msg.sender].hasVoted);
     _;
   }
