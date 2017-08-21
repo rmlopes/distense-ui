@@ -1,6 +1,6 @@
 pragma solidity ^0.4.11;
 
-import './SafeMath.sol';
+import '../lib/SafeMath.sol';
 
 contract VotingDapp {
   using SafeMath for uint256;
