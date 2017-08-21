@@ -6,17 +6,17 @@ contract VotingDapp {
   using SafeMath for uint256;
 
   struct Poll {
-    bytes32 public _pollID;
-    address public createdBy;
-    Option[] public options;
-    uint256 public createdAt;
-    PollType public type;
-    uint256 public endDate;
-    bytes public secret;
-    mapping (address => Voter) public voters;
-    uint256 public winningIndex;
-    bool public hasEnded;
-    uint256 public cost;
+    bytes32 _pollID;
+    address createdBy;
+    Option[] options;
+    uint256 createdAt;
+    PollType pollType;
+    uint256 endDate;
+    bytes secret;
+    mapping (address => Voter) voters;
+    uint256 winningIndex;
+    bool hasEnded;
+    uint256 cost;
   }
 
   struct Voter {
@@ -94,7 +94,7 @@ contract VotingDapp {
   }
 
   modifier isApproved() {
-    require (pollType == PollType.Anyone || polls[_pollID].voters[msg.sender].isApproved);
+    require (_pollType == PollType.Anyone || polls[_pollID].voters[msg.sender].isApproved);
     _;
   }
 
