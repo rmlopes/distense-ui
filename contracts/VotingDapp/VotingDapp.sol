@@ -6,9 +6,10 @@ contract VotingDapp {
   using SafeMath for uint256;
 
   struct Poll {
-    bytes32 _pollID;
+    bytes32 pollID;
+    string question;
     address createdBy;
-    Option[] options;
+    mapping (bytes32 => uint256) options;
     uint256 createdAt;
     PollType pollType;
     uint256 endDate;
@@ -20,17 +21,17 @@ contract VotingDapp {
   }
 
   struct Voter {
-    address voterAddress;
     bool hasVoted;
     bool isApproved;
   }
 
   struct Option {
-    string text;
+    bytes32 text;
     uint256 votes;
   }
 
   mapping (bytes32 => Poll) public polls;
+
   enum PollType { Anyone, Approved, Secret }
 
   //TODO payable
@@ -41,47 +42,49 @@ contract VotingDapp {
     address _createdBy,
     PollType _pollType,
     uint256 _endDate,
-    string[] _options,
+    bytes32[] _options,
     address[] _voters,
     bytes _secret
-  ) external returns (bool) {
+  ) external returns (bool) 
+  {
     require(_createdBy != address(0));
     uint256 _createdAt = block.timestamp;
     require(_endDate <= _createdAt + 1 years);
     bytes32 _pollID = keccak256(_createdBy, _endDate, _createdAt, _pollType);	// uniqueID that will be bytes32
-    Poll storage poll = Poll(
-      _pollID,
-      _createdBy,
-      _options,
-      _createdAt,
-      _pollType,
-      _endDate,
-      _secret
-    );
+    polls[_pollID].pollID = _pollID;
+    polls[_pollID].createdAt = _createdAt;
+    polls[_pollID].createdBy = _createdBy;
+    polls[_pollID].pollType = _pollType;
+    polls[_pollID].endDate = _endDate;
+    polls[_pollID].secret = _secret;
+    for (uint i = 0; i < _options.length; i++) {
+      polls[_pollID].options[_options[i]] = 0;
+    }
     // Loop through provided voters and mark them boolean in approvedVoters mapping
     // TODO determine max approvedVoters length that will be under block gas limit + whatever other gas is consumed by this function
-    for (uint256 i = 0; i < _voters.length; i++){
-      address votersAddress = _voters[i];
-      Voter storage voter = Voter(votersAddress, false, true);
-      polls[_pollID].voters[votersAddress] = voter;
+    for (uint256 j = 0; j < _voters.length; j++) {
+      polls[_pollID].voters[_voters[j]].hasVoted = false;
+      polls[_pollID].voters[_voters[j]].isApproved = true;
     }
     return true;
   }
 
-  function addApprovedVoter(bytes32 _pollID, address _address) onlyCreator external returns (bool) {
-    polls[_pollID].approvedVoters[_address] = true;
+  function addApprovedVoter(bytes32 _pollID, address _address) onlyCreator(_pollID) external returns (bool) {
+    polls[_pollID].voters[_address].isApproved = true;
   }
 
   //TODO
   function resolvePoll() {
   }
 
-  function vote(bytes32 _pollID,string _text) isApproved hasntVoted external returns (bool) {
-    Poll storage poll = polls[_pollID];
-    require(block.timestamp <= poll.endDate);
-    poll.voters[msg.sender].hasVoted = true;
-    uint256 index = poll.options[_text];
-    poll.options[index].votes += 1;
+  function vote(bytes32 _pollID,bytes32 _text, PollType _pollType) 
+  isApproved(_pollType, _pollID) 
+  hasntVoted(_pollID)
+  external returns (bool) 
+  {
+    require(block.timestamp <= polls[_pollID].endDate);
+    polls[_pollID].voters[msg.sender].hasVoted = true;
+    polls[_pollID].options[_text] += 1;
     return true;
   }
 
@@ -89,17 +92,17 @@ contract VotingDapp {
   /*modifier pollCreationFunded(){  
   }*/
 
-  modifier onlyCreator(address _pollID){
+  modifier onlyCreator(bytes32 _pollID){
     require(polls[_pollID].createdBy == msg.sender);
     _;
   }
 
-  modifier isApproved(PollType _pollType, address _pollID) {
+  modifier isApproved(PollType _pollType, bytes32 _pollID) {
     require (_pollType == PollType.Anyone || polls[_pollID].voters[msg.sender].isApproved);
     _;
   }
 
-  modifier hasntVoted(address _pollID) {
+  modifier hasntVoted(bytes32 _pollID) {
     require (!polls[_pollID].voters[msg.sender].hasVoted);
     _;
   }
