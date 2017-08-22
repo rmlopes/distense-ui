@@ -15,7 +15,7 @@ contract VotingDapp {
     uint256 endDate;
     bytes secret;
     mapping (address => Voter) voters;
-    uint256 winningIndex;
+    bytes32 winningOption;
     bool hasEnded;
     uint256 cost;
   }
