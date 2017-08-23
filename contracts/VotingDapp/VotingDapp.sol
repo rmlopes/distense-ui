@@ -3,6 +3,7 @@ pragma solidity ^0.4.11;
 import '../lib/SafeMath.sol';
 
 contract VotingDapp {
+  
   using SafeMath for uint256;
 
   struct Poll {
@@ -34,10 +35,11 @@ contract VotingDapp {
 
   enum PollType { Anyone, Approved, Secret }
 
-  //TODO payable
+  //TODO 
   function VotingDapp() {
   }
 
+  //TODO payable
   function createPoll(
     address _createdBy,
     PollType _pollType,
