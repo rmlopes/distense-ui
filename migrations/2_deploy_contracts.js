@@ -10,5 +10,5 @@ module.exports = deployer => {
   deployer.deploy(DIDToken)
     // .then(() => deployer.deploy(HAVToken, {gas: 4000000}))
     .then(() => deployer.deploy(Distense))
-  deployer.deploy(VotingDapp)
+    deployer.deploy(VotingDapp)
 }

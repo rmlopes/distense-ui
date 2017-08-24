@@ -41,7 +41,6 @@ contract VotingDapp {
 
   //TODO payable
   function createPoll(
-    address _createdBy,
     PollType _pollType,
     uint256 _endDate,
     bytes32[] _options,
@@ -49,7 +48,7 @@ contract VotingDapp {
     bytes _secret
   ) external returns (bool) 
   {
-    require(_createdBy != address(0));
+    address _createdBy = msg.sender;
     uint256 _createdAt = block.timestamp;
     require(_endDate <= _createdAt + 1 years);
     bytes32 _pollID = keccak256(_createdBy, _endDate, _createdAt, _pollType);	// uniqueID that will be bytes32
