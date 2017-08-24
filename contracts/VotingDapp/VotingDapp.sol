@@ -51,7 +51,8 @@ contract VotingDapp {
     address _createdBy = msg.sender;
     uint256 _createdAt = block.timestamp;
     require(_endDate <= _createdAt + 1 years);
-    bytes32 _pollID = keccak256(_createdBy, _endDate, _createdAt, _pollType);	// uniqueID that will be bytes32
+    uint _pollTypeUint = uint(PollType(_pollType));
+    bytes32 _pollID = keccak256(_createdBy, _endDate, _createdAt, _pollTypeUint);	// uniqueID that will be bytes32
     polls[_pollID].pollID = _pollID;
     polls[_pollID].createdAt = _createdAt;
     polls[_pollID].createdBy = _createdBy;
